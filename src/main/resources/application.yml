@@ -40,18 +40,18 @@ shedlock:
     prefix: shedlock-message-scheduler-
   schedulers:
     firstScheduler:
-      lockAtMostFor: PT1M
-      lockAtLeastFor: PT10S
+      lockAtMostFor: PT30S
+      lockAtLeastFor: PT5S
       key: scheduler-1
       cron: 0/1 * * ? * *
     secondScheduler:
       lockAtMostFor: PT30S
       lockAtLeastFor: PT15S
       key: scheduler-2
-      cron: 0/12 * * ? * *
+      cron: 0 0/15 * ? * *
 app-generic:
   simulate-slow-operation: true
-  minInSeconds: 0
-  maxInSeconds: 15
+  minInSeconds: 15
+  maxInSeconds: 45
 server:
   port: 0

@@ -2,11 +2,13 @@ package com.korkutkose.scheduler.shedlock.configuration;
 
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import net.javacrumbs.shedlock.support.KeepAliveLockProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.concurrent.Executors;
 
 /**
  * @author mehmetkorkut
@@ -19,7 +21,7 @@ public class ShedlockConfiguration {
 
     @Bean
     public LockProvider lockProvider(DataSource dataSource) {
-        return getJdbcTemplateLockProvider(dataSource);
+        return new KeepAliveLockProvider(getJdbcTemplateLockProvider(dataSource), Executors.newSingleThreadScheduledExecutor());
     }
 
     private JdbcTemplateLockProvider getJdbcTemplateLockProvider(DataSource dataSource) {
