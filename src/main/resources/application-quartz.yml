@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile:
+        - quartz
+quartz:
+  enabled: true
+  classpath: quartz-pgsql.properties
+  startupDelayInSecond: 5
+  schedulers:
+    firstScheduler:
+      key: scheduler-1
+      repeatIntervalInMs: 1000
+    secondScheduler:
+      key: scheduler-2
+      repeatIntervalInMs: 12000

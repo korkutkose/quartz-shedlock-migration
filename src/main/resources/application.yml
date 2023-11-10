@@ -1,57 +1,33 @@
+server:
+  port: 0
 spring:
+  profiles:
+    default: quartz
   sql:
     init:
       data-locations:
-        - classpath:/db/quartz-postgresql.sql
-        - classpath:/db/shedlock-postgresql.sql
+        - classpath:db/ddl/quartz-postgresql.sql
+        - classpath:db/ddl/shedlock-postgresql.sql
+        - classpath:db/ddl/task.sql
       enabled: true
       mode: ALWAYS
       continue-on-error: false
       platform: postgresql
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: myuser
-    password: secret
+    url: jdbc:postgresql://localhost:5432/migration_db
+    username: migration_db_user
+    password: migration_db_secret
     driverClassName: org.postgresql.Driver
   jpa:
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         show_sql: false
         format_sql: true
-quartz:
-  enabled: false
-  classpath: quartz-pgsql.properties
-  startupDelayInSecond: 5
-  schedulers:
-    firstScheduler:
-      key: scheduler-1
-      repeatIntervalInMs: 1000
-    secondScheduler:
-      key: scheduler-2
-      repeatIntervalInMs: 12000
-shedlock:
-  enabled: true
-  thread:
-    corePoolSize: 5
-    prefix: shedlock-message-scheduler-
-  schedulers:
-    firstScheduler:
-      lockAtMostFor: PT30S
-      lockAtLeastFor: PT5S
-      key: scheduler-1
-      cron: 0/1 * * ? * *
-    secondScheduler:
-      lockAtMostFor: PT30S
-      lockAtLeastFor: PT15S
-      key: scheduler-2
-      cron: 0 0/15 * ? * *
 app-generic:
   simulate-slow-operation: true
   minInSeconds: 15
   maxInSeconds: 45
-server:
-  port: 0

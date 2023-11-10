@@ -1,0 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile:
+        - shedlock
+shedlock:
+  enabled: true
+  thread:
+    corePoolSize: 5
+    prefix: shedlock-message-scheduler-
+  schedulers:
+    firstScheduler:
+      lockAtMostFor: PT30S
+      lockAtLeastFor: PT5S
+      key: scheduler-1
+      cron: 0/1 * * ? * *
+    secondScheduler:
+      lockAtMostFor: PT30S
+      lockAtLeastFor: PT15S
+      key: scheduler-2
+      cron: 0 0/15 * ? * *

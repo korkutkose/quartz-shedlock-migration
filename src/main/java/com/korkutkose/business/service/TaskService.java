@@ -6,6 +6,8 @@ import com.korkutkose.business.properties.ApplicationProperties;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
+@Transactional(readOnly = true)
 public class TaskService {
 
     private final TaskRepository taskRepository;
@@ -31,6 +34,7 @@ public class TaskService {
         this.random = new Random();
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public TaskEntityDto createTask(String title, String description) {
         TaskEntity save = taskRepository.save(TaskEntity.builder()
                 .title(title)
