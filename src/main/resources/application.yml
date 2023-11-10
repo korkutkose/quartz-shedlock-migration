@@ -33,6 +33,22 @@ quartz:
     secondScheduler:
       key: scheduler-2
       repeatIntervalInMs: 12000
+shedlock:
+  enabled: true
+  thread:
+    corePoolSize: 5
+    prefix: shedlock-message-scheduler-
+  schedulers:
+    firstScheduler:
+      lockAtMostFor: PT1M
+      lockAtLeastFor: PT10S
+      key: scheduler-1
+      cron: 0/1 * * ? * *
+    secondScheduler:
+      lockAtMostFor: PT30S
+      lockAtLeastFor: PT15S
+      key: scheduler-2
+      cron: 0/12 * * ? * *
 app-generic:
   simulate-slow-operation: true
   minInSeconds: 0
