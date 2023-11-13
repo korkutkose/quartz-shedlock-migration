@@ -53,12 +53,14 @@ public class QuartzConfiguration {
 
     private SchedulerFactoryBean getSchedulerFactoryBean(DataSource dataSource, JobFactory jobFactory, int startupDelay) throws Exception {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
+        factory.setAutoStartup(quartzProperties.enabled());
+        if (quartzProperties.classpath() != null) {
+            factory.setConfigLocation(new ClassPathResource(quartzProperties.classpath()));
+        }
         factory.setOverwriteExistingJobs(false);
         factory.setDataSource(dataSource);
         factory.setJobFactory(jobFactory);
-        factory.setAutoStartup(quartzProperties.enabled());
         factory.setStartupDelay(startupDelay);
-        factory.setConfigLocation(new ClassPathResource(quartzProperties.classpath()));
         factory.setWaitForJobsToCompleteOnShutdown(true);
         factory.afterPropertiesSet();
         return factory;

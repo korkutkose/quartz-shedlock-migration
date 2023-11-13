@@ -1,9 +1,9 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: '${DB_IMAGE}'
     environment:
-      - 'POSTGRES_DB=migration_db'
-      - 'POSTGRES_PASSWORD=migration_db_secret'
-      - 'POSTGRES_USER=migration_db_user'
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - '5432:5432'
+      - '${DB_PORT}:${DB_PORT}'
