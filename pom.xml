@@ -81,6 +81,16 @@
             <plugin>
                 <groupId>org.graalvm.buildtools</groupId>
                 <artifactId>native-maven-plugin</artifactId>
+                <configuration>
+                    <imageName>native-executable-app</imageName>
+                    <buildArgs>
+                        <arg>-H:+AddAllCharsets</arg>
+                        <arg>-H:TempDirectory=${env.TMPDIR}</arg>
+                        <arg>-march=compatibility</arg>
+                        <arg>--enable-monitoring=all</arg>
+                        <arg>-J-Xmx12G</arg>
+                    </buildArgs>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

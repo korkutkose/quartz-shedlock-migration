@@ -1,0 +1,36 @@
+version: '3.9'
+services:
+  app-0:
+    image: '${APP_IMAGE}:${APP_IMAGE_VERSION}'
+    build: ./
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${APP_ACTIVE_PROFILE}
+    ports:
+      - '${APP_OUT_PORT_APP_0}:${APP_IN_PORT}'
+    depends_on:
+      - postgres
+    restart: always
+  app-1:
+    image: '${APP_IMAGE}:${APP_IMAGE_VERSION}'
+    build: ./
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${APP_ACTIVE_PROFILE}
+    ports:
+      - '${APP_OUT_PORT_APP_1}:${APP_IN_PORT}'
+    depends_on:
+      - postgres
+    restart: always
+  postgres:
+    image: '${DB_IMAGE}:${DB_IMAGE_VERSION}'
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '${DB_PORT}:${DB_PORT}'
