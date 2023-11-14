@@ -51,6 +51,11 @@ public class QuartzConfiguration {
         return factory;
     }
 
+    @Bean
+    public QuartzSchedulerInitializer schedulerInitializer(Scheduler schedulerFactoryBean) {
+        return new QuartzSchedulerInitializer(schedulerFactoryBean, schedulerProperties, quartzProperties.enabled());
+    }
+
     private SchedulerFactoryBean getSchedulerFactoryBean(DataSource dataSource, JobFactory jobFactory, int startupDelay) throws Exception {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         factory.setAutoStartup(quartzProperties.enabled());
@@ -66,12 +71,7 @@ public class QuartzConfiguration {
         return factory;
     }
 
-    @Bean
-    public QuartzSchedulerInitializer schedulerInitializer(Scheduler schedulerFactoryBean) {
-        return new QuartzSchedulerInitializer(schedulerFactoryBean, schedulerProperties, quartzProperties.enabled());
-    }
-
-    public static class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory {
+    private static class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory {
 
         private final AutowireCapableBeanFactory autowireCapableBeanFactory;
 

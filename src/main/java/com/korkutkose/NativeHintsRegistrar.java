@@ -19,8 +19,10 @@ import java.util.UUID;
  */
 public class NativeHintsRegistrar implements RuntimeHintsRegistrar {
     /**
-     * @param hints
-     * @param classLoader
+     * Register hints for the given {@link RuntimeHints}.
+     *
+     * @param hints       the runtime hints to register
+     * @param classLoader the class loader used to load the application
      */
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {

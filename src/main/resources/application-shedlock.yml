@@ -6,6 +6,7 @@ spring:
 shedlock:
   enabled: true
   thread:
+    useFixedPoolSize: false
     corePoolSize: 5
     prefix: shedlock-message-scheduler-
   schedulers:

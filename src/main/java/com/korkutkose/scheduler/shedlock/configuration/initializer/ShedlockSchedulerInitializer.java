@@ -11,6 +11,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author mehmetkorkut
@@ -46,52 +47,59 @@ public class ShedlockSchedulerInitializer {
             log.warn("shedlockProperties.enabled() false. Not starting schedulers.");
             return;
         }
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = taskScheduler();
-        registerFirstJob(threadPoolTaskScheduler, shedlockProperties.schedulers().firstScheduler());
-        registerSecondJob(threadPoolTaskScheduler, shedlockProperties.schedulers().secondScheduler());
+        List<BaseLockedRunnableJob> baseLockedRunnableJobs = getJobs();
+        ThreadPoolTaskScheduler threadPoolTaskScheduler = taskScheduler(baseLockedRunnableJobs.size());
+        baseLockedRunnableJobs.forEach(baseLockedRunnableJob -> generate(threadPoolTaskScheduler, baseLockedRunnableJob));
+        log.info("# of schedulers generated: {}", baseLockedRunnableJobs.size());
+    }
+
+    /**
+     * <p>get jobs with given parameters</p>
+     *
+     * @return list of BaseLockedRunnableJob instances with given parameters and lock provider from constructor parameter lockProvider instance
+     */
+    private List<BaseLockedRunnableJob> getJobs() {
+        BaseLockedRunnableJob firstJob = getFirstJob(shedlockProperties.schedulers().firstScheduler());
+        BaseLockedRunnableJob secondJob = getSecondJob(shedlockProperties.schedulers().secondScheduler());
+        return List.of(firstJob, secondJob);
     }
 
     /**
      * <p>register first job with given parameters</p>
      *
-     * @param threadPoolTaskScheduler thread pool task scheduler instance to be used for scheduling
-     * @param schedulerDetail         scheduler detail object which contains cron expression and lock durations
+     * @param schedulerDetail scheduler detail object which contains cron expression and lock durations
+     * @return BaseLockedRunnableJob instance with given parameters and lock provider from constructor parameter lockProvider instance
      */
-    private void registerFirstJob(ThreadPoolTaskScheduler threadPoolTaskScheduler,
-                                  ShedlockProperties.SchedulerProperties.SchedulerDetail schedulerDetail) {
-        BaseLockedRunnableJob lockableJob = getLockableJob(runnableTaskFactory.createDummyWaitingScheduledJob(
-                        schedulerDetail.key()), schedulerDetail.key(), schedulerDetail.lockAtMostFor(), schedulerDetail.lockAtLeastFor()
-        );
-        generate(threadPoolTaskScheduler, schedulerDetail, lockableJob);
+    private BaseLockedRunnableJob getFirstJob(ShedlockProperties.SchedulerProperties.SchedulerDetail schedulerDetail) {
+        return getLockableJob(runnableTaskFactory.createDummyWaitingScheduledJob(schedulerDetail.key()),
+                schedulerDetail.key(), schedulerDetail.lockAtMostFor(),
+                schedulerDetail.lockAtLeastFor(), schedulerDetail.cron());
     }
 
     /**
      * <p>register second job with given parameters</p>
      *
-     * @param threadPoolTaskScheduler thread pool task scheduler instance to be used for scheduling
-     * @param schedulerDetail         scheduler detail object which contains cron expression and lock durations
+     * @param schedulerDetail scheduler detail object which contains cron expression and lock durations
+     * @return BaseLockedRunnableJob instance with given parameters and lock provider from constructor parameter lockProvider instance
      */
-    private void registerSecondJob(ThreadPoolTaskScheduler threadPoolTaskScheduler,
-                                   ShedlockProperties.SchedulerProperties.SchedulerDetail schedulerDetail) {
-        BaseLockedRunnableJob lockableJob = getLockableJob(runnableTaskFactory.createAnotherDummyWaitingScheduledJob(
-                        schedulerDetail.key()), schedulerDetail.key(), schedulerDetail.lockAtMostFor(), schedulerDetail.lockAtLeastFor()
+    private BaseLockedRunnableJob getSecondJob(ShedlockProperties.SchedulerProperties.SchedulerDetail schedulerDetail) {
+        return getLockableJob(runnableTaskFactory.createAnotherDummyWaitingScheduledJob(schedulerDetail.key()),
+                schedulerDetail.key(), schedulerDetail.lockAtMostFor(),
+                schedulerDetail.lockAtLeastFor(), schedulerDetail.cron()
         );
-        generate(threadPoolTaskScheduler, schedulerDetail, lockableJob);
     }
 
     /**
      * <p>generate job with given parameters</p>
      *
      * @param threadPoolTaskScheduler thread pool task scheduler instance to be used for scheduling
-     * @param schedulerDetail         scheduler detail object which contains cron expression and lock durations
      * @param lockableJob             lockable job instance which contains runnable task and lock provider
      */
     private void generate(ThreadPoolTaskScheduler threadPoolTaskScheduler,
-                          ShedlockProperties.SchedulerProperties.SchedulerDetail schedulerDetail,
                           BaseLockedRunnableJob lockableJob) {
-        threadPoolTaskScheduler.schedule(lockableJob, new CronTrigger(schedulerDetail.cron()));
+        threadPoolTaskScheduler.schedule(lockableJob, new CronTrigger(lockableJob.getCron()));
         log.info("{} is scheduled to run with cron {} and durations; lockAtLeastFor: {}, lockAtMostFor: {}",
-                schedulerDetail.key(), schedulerDetail.cron(), schedulerDetail.lockAtLeastFor(), schedulerDetail.lockAtMostFor());
+                lockableJob.getLockName(), lockableJob.getCron(), lockableJob.getLockAtLeastFor(), lockableJob.getLockAtMostFor());
     }
 
     /**
@@ -101,10 +109,11 @@ public class ShedlockSchedulerInitializer {
      * @param lockName       name of the lock
      * @param lockAtMostFor  <p>specifies the maximum duration for which the lock should be held. It limits the maximum execution time of the task.
      * @param lockAtLeastFor <p>specifies the minimum duration for which the lock should be held.
+     * @param cron           <p>cron expression to be used for scheduling
      * @return BaseLockedRunnableJob instance with given parameters and lock provider from constructor parameter lockProvider instance
      */
-    private BaseLockedRunnableJob getLockableJob(Runnable task, String lockName, Duration lockAtMostFor, Duration lockAtLeastFor) {
-        return new BaseLockedRunnableJob(task, lockName, lockProvider, lockAtMostFor, lockAtLeastFor);
+    private BaseLockedRunnableJob getLockableJob(Runnable task, String lockName, Duration lockAtMostFor, Duration lockAtLeastFor, String cron) {
+        return new BaseLockedRunnableJob(task, lockName, lockProvider, lockAtMostFor, lockAtLeastFor, cron);
     }
 
     /**
@@ -112,10 +121,11 @@ public class ShedlockSchedulerInitializer {
      *
      * @return ThreadPoolTaskScheduler instance with given properties from application.yml file under shedlock prefix properties (thread)
      */
-    private ThreadPoolTaskScheduler taskScheduler() {
+    private ThreadPoolTaskScheduler taskScheduler(int size) {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(shedlockProperties.thread().corePoolSize());
-        scheduler.setThreadNamePrefix(shedlockProperties.thread().prefix());
+        ShedlockProperties.ThreadDefinition thread = shedlockProperties.thread();
+        scheduler.setPoolSize(thread.useFixedPoolSize() ? thread.corePoolSize() : size);
+        scheduler.setThreadNamePrefix(thread.prefix());
         scheduler.initialize();
         return scheduler;
     }

@@ -13,7 +13,7 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "shedlock")
 public record ShedlockProperties(boolean enabled, SchedulerProperties schedulers, ThreadDefinition thread) {
 
-    public record ThreadDefinition(int corePoolSize, String prefix) {
+    public record ThreadDefinition(boolean useFixedPoolSize, int corePoolSize, String prefix) {
     }
 
     public record SchedulerProperties(SchedulerDetail firstScheduler,

@@ -1,5 +1,6 @@
 package com.korkutkose.scheduler.shedlock.configuration.initializer;
 
+import lombok.Getter;
 import net.javacrumbs.shedlock.core.DefaultLockingTaskExecutor;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
@@ -18,6 +19,7 @@ import java.time.Instant;
  * @package - com.korkutkose.scheduler.shedlock.configuration.base
  * @project - quartz-shedlock-migration
  */
+@Getter
 public class BaseLockedRunnableJob implements Runnable {
 
     private final Runnable runnable;
@@ -25,6 +27,7 @@ public class BaseLockedRunnableJob implements Runnable {
     private final String lockName;
     private final Duration lockAtMostFor;
     private final Duration lockAtLeastFor;
+    private final String cron;
 
     /**
      * @param runnable       runnable object <br>
@@ -36,17 +39,19 @@ public class BaseLockedRunnableJob implements Runnable {
      *                       It ensures that the task will be executed for at least the specified duration,
      *                       even if the task completes earlier. If the task finishes execution before the lockAtLeastFor duration elapses,
      *                       the lock will still be held until the minimum duration has passed.</p>
+     * @param cron           <p>cron expression to be used for scheduling</p>
      */
     protected BaseLockedRunnableJob(Runnable runnable,
                                     String lockName,
                                     LockProvider lockProvider,
                                     Duration lockAtMostFor,
-                                    Duration lockAtLeastFor) {
+                                    Duration lockAtLeastFor, String cron) {
         this.runnable = runnable;
         this.lockName = lockName;
         this.lockProvider = lockProvider;
         this.lockAtMostFor = lockAtMostFor;
         this.lockAtLeastFor = lockAtLeastFor;
+        this.cron = cron;
     }
 
     /**

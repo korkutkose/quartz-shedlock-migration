@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: '${DB_IMAGE}'
+    image: '${DB_IMAGE}:${DB_IMAGE_VERSION}'
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
